@@ -124,6 +124,7 @@ class wxRepotSdk {
         })
     }
     wrapRequest() {
+        let timer = null;
         const originRequest = wx.request;
         const request = [];
         const response = [];
@@ -143,7 +144,6 @@ class wxRepotSdk {
                 })
                 const _complete = config.complete || function (data) { };
                 config.complete = function (data) {
-                    console.log(data)
                     response.push({
                         errMsg: data.errMsg,
                         url: config.url || '',
@@ -151,8 +151,12 @@ class wxRepotSdk {
                         endtime: new Date().getTime(),
                         bodySize: data.header ? data.header['Content-Length'] : 0,
                     })
-                    if (response.length === request.length) {
-                        _this.mergeAjax(request, response);
+                    if (response.length === request.length){
+                        clearTimeout(timer);
+                        timer = setTimeout(()=>{
+                            if (response.length === request.length) _this.mergeAjax(request, response);
+                            clearTimeout(timer);
+                        },_this.config.timeout)
                     }
                     return _complete.apply(this, arguments);
                 }
