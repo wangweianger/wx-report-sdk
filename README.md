@@ -1,7 +1,7 @@
 ### wx-report-sdk 微信小程序，错误，ajax性能，系统信息，uv等上报信息sdk
 
 
-### performance-report SDK主要上报一下性能信息
+### performance-report SDK主要上报以下性能信息
 >  * errs           错误信息，包含js错误和ajax错误信息
 >  * markuser       用户标识，可用于做uv统计
 >  * net            用户的网络类型 参考小程序的 wx.getNetworkType 方法
