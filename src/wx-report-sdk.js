@@ -60,7 +60,10 @@ class wxRepotSdk {
                 }
                 if (!_this.datas.markuser) wx.getStorage({ key: 'ps_wx_mark_user', success(res) { _this.datas.markuser = res; } })
                 setTimeout(() => {
-                    if (!_this.haveAjax) _this.report();
+                    if (!_this.haveAjax){
+                        _this.datas.time = new Date().getTime();
+                        _this.report();
+                    }
                 }, _this.config.timeout)
                 return _onShow.apply(this, arguments)
             }
@@ -180,7 +183,10 @@ class wxRepotSdk {
                     }
                 }
             })
-            if (i === response.length - 1) _this.report();
+            if (i === response.length - 1){
+                _this.datas.time = new Date().getTime();
+                _this.report();
+            }
         });
     }
     report() {
