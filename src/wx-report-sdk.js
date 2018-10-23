@@ -137,7 +137,7 @@ class wxRepotSdk {
                 _this.haveAjax = true;
                 request.push({
                     url: config.url || '',
-                    data: config.data || '',
+                    options: config.data || '',
                     method: config.method || 'GET',
                     begintime: new Date().getTime()
                 })
@@ -171,6 +171,7 @@ class wxRepotSdk {
                             name: item1.url,
                             method: item1.method,
                             bodySize: item.bodySize,
+                            options:item1.options
                         })
                     } else {
                         _this.datas.errs.push({
@@ -179,6 +180,7 @@ class wxRepotSdk {
                             msg: item.errMsg,
                             type: 'ajax',
                             status: item.statusCode,
+                            options:item1.options
                         })
                     }
                 }
