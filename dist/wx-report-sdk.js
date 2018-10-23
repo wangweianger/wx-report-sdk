@@ -51,6 +51,7 @@ class wxRepotSdk {
             page.onShow = function () {
                 _this.haveAjax = false;
                 _this.datas.errs = [];
+                _this.datas.ajaxs = [];
                 let currentPages = getCurrentPages();
                 if (currentPages && currentPages.length) {
                     const length = currentPages.length;
