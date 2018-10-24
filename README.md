@@ -16,6 +16,7 @@
 ### 使用方法：
 
 ```js
+
 微信小程序 app.js头部引入sdk
 
 const wxRepotSdk = require('./utils/wx-report-sdk.min');
@@ -28,61 +29,80 @@ new wxRepotSdk({
 
 ### 参数说明
 
-isUse: true,
-            isNet: true,
-            isSys: true,
-            isLocal: true,
-            timeout: 500,
-            domain: 'test.com'
-
->  * isUse     ：sdk是否启用
+>  * isUse     ：sdk是否启用 默认：true）
 >  * isNet     ：是否上报网络信息（默认：true）
 >  * isSys     ：是否上报系统信息（默认：true）
 >  * isLocal   ：是否上报用户地理位置信息 （默认：true）
 >  * timeout   ：上报延迟时间 （默认：500ms）
 >  * domain    ：上报api地址 
 
+* 案例
+```
+
+const wxRepotSdk = require('./utils/wx-report-sdk.min');
+
+//最简单版本
+new wxRepotSdk({
+    domain:'http://test.com'
+})
+
+//完整版本
+new wxRepotSdk({
+    domain:'http://test.com',
+    isUse:true,
+    isNet:true,
+    isSys:true,
+    isLocal:false,
+    timeout:500,
+    add:{
+      appId:'123456789'
+    }
+})
+
+```
+
 
 ## Return parameter description
 
 | parameter name | describe | explain |
 | --- | --- | --- |
-| markPage | 当前页面标识 |  |
-| markUser | 用户标识  | 可用来做UV统计，和用户行为漏斗分析 |
-| screenwidth | 屏幕宽度  |  |
-| screenheight | 屏幕高度  |  |
-| preUrl | 上一页面  |  |
+| markuser | 用户标识  | 可用来做UV统计，和用户行为漏斗分析 |
+| net | 网络类型  |  |
+| time | 上报时间  |  |
 |  |  |  |
-| errorList | 错误资源列表信息 |  |
-| ->t | 资源时间 |  |
-| ->n | 资源类型 | resource，js，ajax，fetch,other  |
+| pages | 页面信息 |  |
+| ->router | 当前小程序路径 |  |
+| ->options | 当前路径参数 |   |
+|  |  |  |
+| ajaxs |   ajax性能信息 |  |
+| ->duration | ajax请求耗时 |  |
+| ->name | api请求地址 |  |
+| ->method | 请求方式 | GET,POST,PUT,DELETE 等 |
+| ->bodySize | ajax返回资源大小 |  |
+| ->options | 请求参数 |  |
+|  |  |  |
+| errs | 错误信息列表 |  |
+| ->col | 错误行 |  |
+| ->line | 错误列 |  |
+| ->name | 错误js名称 | |
 | ->msg | 错误信息 |  |
-| ->method | 资源请求方式 | GET，POST |
-| ->data->resourceUrl | 请求资源路径 |  |
-| ->data->col | js错误行 |  |
-| ->data->line |  js错误列 |  |
-| ->data->status | ajax错误状态 |  |
-| ->data->text | ajax错误信息 |  |
+| ->status | 错误状态码 |  |
+| ->options | 请求参数 |  |
+| ->type | 错误类型 | js,ajax |
 |  |  |  |
-| performance |   页面资源性能数据(单位均为毫秒) |  |
-| ->dnst | DNS解析时间 |  |
-| ->tcpt | TCP建立时间 |  |
-| ->wit | 白屏时间 |  |
-| ->domt | dom渲染完成时间 |  |
-| ->lodt | 页面onload时间 |  |
-| ->radt | 页面准备时间  |  |
-| ->rdit | 页面重定向时间 |  |
-| ->uodt | unload时间 |  |
-| ->reqt | request请求耗时 |  |
-| ->andt | 页面解析dom耗时 |  |
+| loc | 地理位置信息 |  |
+| ->latitude | 经度 |  |
+| ->longitude | 纬度 |  |
 |  |  |  |
-| resoruceList | 页面资源性能数据 |  |
-| ->decodedBodySize | 资源返回数据大小 |  |
-| ->duration | 资源耗时 |  |
-| ->method | 请求方式 | GET,POST |
-| ->name | 请求资源路径 |  |
-| ->nextHopProtocol | http协议版本 |  |
-| ->type | 请求资源类型 | script，img，fetchrequest，xmlhttprequest，other |
+| system | 用户系统信息 |  |
+| ->model | 手机品牌 |  |
+| ->system | 系统版本 |  |
+| ->language | 微信语言 |  |
+| ->version | 微信版本 |  |
+| ->screenWidth | 屏幕宽度 |  |
+| ->screenHeight | 屏幕高度 |  |
+| ->SDKVersion | 小程序sdk版本 |  |
+
 
 ### A complete report of the report looks like this.
 ```js

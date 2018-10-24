@@ -23,6 +23,7 @@ class wxRepotSdk {
             pages: {},
             ajaxs: [],
         }
+        this.datas = Object.assign(this.datas, opt.add || {});
         this.init();
     }
     init() {
@@ -49,9 +50,6 @@ class wxRepotSdk {
         Page = (page) => {
             const _onShow = page.onShow || function () { };
             page.onShow = function () {
-                _this.haveAjax = false;
-                _this.datas.errs = [];
-                _this.datas.ajaxs = [];
                 let currentPages = getCurrentPages();
                 if (currentPages && currentPages.length) {
                     const length = currentPages.length;
@@ -61,7 +59,7 @@ class wxRepotSdk {
                 }
                 if (!_this.datas.markuser) wx.getStorage({ key: 'ps_wx_mark_user', success(res) { _this.datas.markuser = res; } })
                 setTimeout(() => {
-                    if (!_this.haveAjax){
+                    if (!_this.haveAjax) {
                         _this.datas.time = new Date().getTime();
                         _this.report();
                     }
@@ -127,8 +125,8 @@ class wxRepotSdk {
     wrapRequest() {
         let timer = null;
         const originRequest = wx.request;
-        const request = [];
-        const response = [];
+        let request = [];
+        let response = [];
         const _this = this;
         Object.defineProperty(wx, 'request', {
             configurable: true,
@@ -152,12 +150,14 @@ class wxRepotSdk {
                         endtime: new Date().getTime(),
                         bodySize: data.header ? data.header['Content-Length'] : 0,
                     })
-                    if (response.length === request.length){
+                    if (response.length === request.length) {
                         clearTimeout(timer);
-                        timer = setTimeout(()=>{
+                        timer = setTimeout(() => {
                             if (response.length === request.length) _this.mergeAjax(request, response);
+                            request =[];
+                            response = [];
                             clearTimeout(timer);
-                        },_this.config.timeout)
+                        }, _this.config.timeout)
                     }
                     return _complete.apply(this, arguments);
                 }
@@ -176,7 +176,7 @@ class wxRepotSdk {
                             name: item1.url,
                             method: item1.method,
                             bodySize: item.bodySize,
-                            options:item1.options
+                            options: item1.options
                         })
                     } else {
                         _this.datas.errs.push({
@@ -185,12 +185,12 @@ class wxRepotSdk {
                             msg: item.errMsg,
                             type: 'ajax',
                             status: item.statusCode,
-                            options:item1.options
+                            options: item1.options
                         })
                     }
                 }
             })
-            if (i === response.length - 1){
+            if (i === response.length - 1) {
                 _this.datas.time = new Date().getTime();
                 _this.report();
             }
@@ -205,6 +205,9 @@ class wxRepotSdk {
                 console.log(res)
             }
         })
+        this.haveAjax = false;
+        this.datas.errs = [];
+        this.datas.ajaxs = [];
     }
 }
 module.exports = wxRepotSdk;
