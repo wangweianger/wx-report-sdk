@@ -23,6 +23,7 @@ class wxRepotSdk {
             pages: {},
             ajaxs: [],
         }
+        this.datas = Object.assign(this.datas, opt.add || {});
         this.init();
     }
     init() {
