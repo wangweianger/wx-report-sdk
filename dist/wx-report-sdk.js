@@ -16,10 +16,10 @@ class wxRepotSdk {
         this.datas = {
             errs: [],
             markuser: '',
+            markuv:'',
             net: '',
             system: {},
             loc: {},
-            userInfo: {},
             pages: {},
             ajaxs: [],
         }
@@ -36,7 +36,7 @@ class wxRepotSdk {
         if (this.config.isLocal) this.location();
     }
     randomString(len) {
-        len = len || 19;
+        len = len || 10;
         var $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz123456789';
         var maxPos = $chars.length;
         var pwd = '';
@@ -58,6 +58,7 @@ class wxRepotSdk {
                     _this.datas.pages.options = lastpage.options || {};
                 }
                 if (!_this.datas.markuser) wx.getStorage({ key: 'ps_wx_mark_user', success(res) { _this.datas.markuser = res; } })
+                if(!_this.datas.markuv) wx.getStorage({ key: 'ps_wx_mark_uv', success(res) { _this.datas.markuv = res; } })
                 setTimeout(() => {
                     if (!_this.haveAjax) {
                         _this.datas.time = new Date().getTime();
@@ -95,10 +96,23 @@ class wxRepotSdk {
                 const random = _this.randomString(19);
                 wx.setStorage({ key: "ps_wx_mark_user", data: random })
                 _this.datas.markuser = random;
+                _this.datas.markuv = _this.markUv();
                 return _onShow.apply(this, arguments)
             }
             _this.originApp(app)
         }
+    }
+    markUv(){
+        const date = new Date();
+        let markUv = wx.getStorageSync('ps_wx_mark_uv')||'';
+        const datatime = wx.getStorageSync('ps_wx_mark_uv_time')||'';
+        const today = date.getFullYear()+'/'+(date.getMonth()+1)+'/'+date.getDate()+' 23:59:59';
+        if( (!markUv && !datatime) || (date.getTime() > datatime*1) ){
+            markUv = randomString();
+            wx.setStorage({key:"ps_wx_mark_uv",data:markUv});
+            wx.setStorage({key:"ps_wx_mark_uv_time",data:new Date(today).getTime()});
+        }
+        return markUv;
     }
     network() {
         wx.getNetworkType({

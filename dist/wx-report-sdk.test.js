@@ -24,10 +24,10 @@ var wxRepotSdk = function () {
         this.datas = {
             errs: [],
             markuser: '',
+            markuv: '',
             net: '',
             system: {},
             loc: {},
-            userInfo: {},
             pages: {},
             ajaxs: []
         };
@@ -49,7 +49,7 @@ var wxRepotSdk = function () {
     }, {
         key: 'randomString',
         value: function randomString(len) {
-            len = len || 19;
+            len = len || 10;
             var $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz123456789';
             var maxPos = $chars.length;
             var pwd = '';
@@ -74,6 +74,10 @@ var wxRepotSdk = function () {
                     }
                     if (!_this.datas.markuser) wx.getStorage({ key: 'ps_wx_mark_user', success: function success(res) {
                             _this.datas.markuser = res;
+                        }
+                    });
+                    if (!_this.datas.markuv) wx.getStorage({ key: 'ps_wx_mark_uv', success: function success(res) {
+                            _this.datas.markuv = res;
                         }
                     });
                     setTimeout(function () {
@@ -119,10 +123,25 @@ var wxRepotSdk = function () {
                     var random = _this.randomString(19);
                     wx.setStorage({ key: "ps_wx_mark_user", data: random });
                     _this.datas.markuser = random;
+                    _this.datas.markuv = _this.markUv();
                     return _onShow.apply(this, arguments);
                 };
                 _this.originApp(app);
             };
+        }
+    }, {
+        key: 'markUv',
+        value: function markUv() {
+            var date = new Date();
+            var markUv = wx.getStorageSync('ps_wx_mark_uv') || '';
+            var datatime = wx.getStorageSync('ps_wx_mark_uv_time') || '';
+            var today = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate() + ' 23:59:59';
+            if (!markUv && !datatime || date.getTime() > datatime * 1) {
+                markUv = randomString();
+                wx.setStorage({ key: "ps_wx_mark_uv", data: markUv });
+                wx.setStorage({ key: "ps_wx_mark_uv_time", data: new Date(today).getTime() });
+            }
+            return markUv;
         }
     }, {
         key: 'network',
