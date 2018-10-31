@@ -108,7 +108,7 @@ class wxRepotSdk {
         const datatime = wx.getStorageSync('ps_wx_mark_uv_time')||'';
         const today = date.getFullYear()+'/'+(date.getMonth()+1)+'/'+date.getDate()+' 23:59:59';
         if( (!markUv && !datatime) || (date.getTime() > datatime*1) ){
-            markUv = randomString();
+            markUv = this.randomString();
             wx.setStorage({key:"ps_wx_mark_uv",data:markUv});
             wx.setStorage({key:"ps_wx_mark_uv_time",data:new Date(today).getTime()});
         }
