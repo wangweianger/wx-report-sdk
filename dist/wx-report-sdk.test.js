@@ -12,12 +12,15 @@ var wxRepotSdk = function () {
         this.originApp = App;
         this.wxRequest = wx.request;
         this.haveAjax = false;
+        this.isReport = false;
+
         this.config = {
             isUse: true,
             isNet: true,
             isSys: true,
             isLocal: true,
             timeout: 500,
+            isRepeat: false,
             domain: 'test.com'
         };
         this.config = Object.assign(this.config, opt || {});
@@ -65,6 +68,7 @@ var wxRepotSdk = function () {
             Page = function Page(page) {
                 var _onShow = page.onShow || function () {};
                 page.onShow = function () {
+                    _this.isReport = false;
                     var currentPages = getCurrentPages();
                     if (currentPages && currentPages.length) {
                         var length = currentPages.length;
@@ -82,6 +86,7 @@ var wxRepotSdk = function () {
                     });
                     setTimeout(function () {
                         if (!_this.haveAjax) {
+                            _this.isReport = true;
                             _this.datas.time = new Date().getTime();
                             _this.report();
                         }
@@ -120,7 +125,8 @@ var wxRepotSdk = function () {
                     return _onError.apply(this, arguments);
                 };
                 app.onShow = function () {
-                    var random = _this.randomString(19);
+                    _this.isReport = false;
+                    var random = _this.randomString();
                     wx.setStorage({ key: "ps_wx_mark_user", data: random });
                     _this.datas.markuser = random;
                     _this.datas.markuv = _this.markUv();
@@ -137,7 +143,7 @@ var wxRepotSdk = function () {
             var datatime = wx.getStorageSync('ps_wx_mark_uv_time') || '';
             var today = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate() + ' 23:59:59';
             if (!markUv && !datatime || date.getTime() > datatime * 1) {
-                markUv = randomString();
+                markUv = this.randomString();
                 wx.setStorage({ key: "ps_wx_mark_uv", data: markUv });
                 wx.setStorage({ key: "ps_wx_mark_uv_time", data: new Date(today).getTime() });
             }
@@ -225,6 +231,8 @@ var wxRepotSdk = function () {
     }, {
         key: 'mergeAjax',
         value: function mergeAjax(request, response) {
+            var _this5 = this;
+
             var _this = this;
             response.forEach(function (item, i) {
                 request.forEach(function (item1, i1) {
@@ -250,6 +258,8 @@ var wxRepotSdk = function () {
                     }
                 });
                 if (i === response.length - 1) {
+                    if (_this5.config.isRepeat && _this5.isReport) return;
+                    if (_this5.config.isRepeat) _this5.isReport = true;
                     _this.datas.time = new Date().getTime();
                     _this.report();
                 }

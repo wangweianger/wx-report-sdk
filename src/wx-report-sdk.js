@@ -4,12 +4,15 @@ class wxRepotSdk {
         this.originApp = App;
         this.wxRequest = wx.request;
         this.haveAjax = false;
+        this.isReport = false;
+
         this.config = {
             isUse: true,
             isNet: true,
             isSys: true,
             isLocal: true,
             timeout: 500,
+            isRepeat: false,
             domain: 'test.com'
         }
         this.config = Object.assign(this.config, opt || {});
@@ -50,6 +53,7 @@ class wxRepotSdk {
         Page = (page) => {
             const _onShow = page.onShow || function () { };
             page.onShow = function () {
+                _this.isReport = false;
                 let currentPages = getCurrentPages();
                 if (currentPages && currentPages.length) {
                     const length = currentPages.length;
@@ -61,6 +65,7 @@ class wxRepotSdk {
                 if(!_this.datas.markuv) wx.getStorage({ key: 'ps_wx_mark_uv', success(res) { _this.datas.markuv = res; } })
                 setTimeout(() => {
                     if (!_this.haveAjax) {
+                         _this.isReport = true;
                         _this.datas.time = new Date().getTime();
                         _this.report();
                     }
@@ -93,7 +98,8 @@ class wxRepotSdk {
                 return _onError.apply(this, arguments)
             }
             app.onShow = function () {
-                const random = _this.randomString(19);
+                _this.isReport = false;
+                const random = _this.randomString();
                 wx.setStorage({ key: "ps_wx_mark_user", data: random })
                 _this.datas.markuser = random;
                 _this.datas.markuv = _this.markUv();
@@ -205,6 +211,8 @@ class wxRepotSdk {
                 }
             })
             if (i === response.length - 1) {
+                if(this.config.isRepeat && this.isReport) return;
+                if(this.config.isRepeat) this.isReport = true;
                 _this.datas.time = new Date().getTime();
                 _this.report();
             }
