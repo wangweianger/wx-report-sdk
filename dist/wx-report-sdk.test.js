@@ -231,8 +231,6 @@ var wxRepotSdk = function () {
     }, {
         key: 'mergeAjax',
         value: function mergeAjax(request, response) {
-            var _this5 = this;
-
             var _this = this;
             response.forEach(function (item, i) {
                 request.forEach(function (item1, i1) {
@@ -258,8 +256,8 @@ var wxRepotSdk = function () {
                     }
                 });
                 if (i === response.length - 1) {
-                    if (_this5.config.isRepeat && _this5.isReport) return;
-                    if (_this5.config.isRepeat) _this5.isReport = true;
+                    if (!_this.config.isRepeat && _this.isReport) return;
+                    _this.isReport = true;
                     _this.datas.time = new Date().getTime();
                     _this.report();
                 }
