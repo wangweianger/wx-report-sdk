@@ -19,7 +19,7 @@ class wxRepotSdk {
         this.datas = {
             errs: [],
             markuser: '',
-            markuv:'',
+            markuv: '',
             net: '',
             system: {},
             loc: {},
@@ -62,10 +62,10 @@ class wxRepotSdk {
                     _this.datas.pages.options = lastpage.options || {};
                 }
                 if (!_this.datas.markuser) wx.getStorage({ key: 'ps_wx_mark_user', success(res) { _this.datas.markuser = res; } })
-                if(!_this.datas.markuv) wx.getStorage({ key: 'ps_wx_mark_uv', success(res) { _this.datas.markuv = res; } })
+                if (!_this.datas.markuv) wx.getStorage({ key: 'ps_wx_mark_uv', success(res) { _this.datas.markuv = res; } })
                 setTimeout(() => {
                     if (!_this.haveAjax) {
-                         _this.isReport = true;
+                        _this.isReport = true;
                         _this.datas.time = new Date().getTime();
                         _this.report();
                     }
@@ -108,15 +108,15 @@ class wxRepotSdk {
             _this.originApp(app)
         }
     }
-    markUv(){
+    markUv() {
         const date = new Date();
-        let markUv = wx.getStorageSync('ps_wx_mark_uv')||'';
-        const datatime = wx.getStorageSync('ps_wx_mark_uv_time')||'';
-        const today = date.getFullYear()+'/'+(date.getMonth()+1)+'/'+date.getDate()+' 23:59:59';
-        if( (!markUv && !datatime) || (date.getTime() > datatime*1) ){
+        let markUv = wx.getStorageSync('ps_wx_mark_uv') || '';
+        const datatime = wx.getStorageSync('ps_wx_mark_uv_time') || '';
+        const today = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate() + ' 23:59:59';
+        if ((!markUv && !datatime) || (date.getTime() > datatime * 1)) {
             markUv = this.randomString();
-            wx.setStorage({key:"ps_wx_mark_uv",data:markUv});
-            wx.setStorage({key:"ps_wx_mark_uv_time",data:new Date(today).getTime()});
+            wx.setStorage({ key: "ps_wx_mark_uv", data: markUv });
+            wx.setStorage({ key: "ps_wx_mark_uv_time", data: new Date(today).getTime() });
         }
         return markUv;
     }
@@ -174,7 +174,7 @@ class wxRepotSdk {
                         clearTimeout(timer);
                         timer = setTimeout(() => {
                             if (response.length === request.length) _this.mergeAjax(request, response);
-                            request =[];
+                            request = [];
                             response = [];
                             clearTimeout(timer);
                         }, _this.config.timeout)
@@ -211,8 +211,8 @@ class wxRepotSdk {
                 }
             })
             if (i === response.length - 1) {
-                if(this.config.isRepeat && this.isReport) return;
-                if(this.config.isRepeat) this.isReport = true;
+                if (!_this.config.isRepeat && _this.isReport) return;
+                _this.isReport = true;
                 _this.datas.time = new Date().getTime();
                 _this.report();
             }
