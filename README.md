@@ -66,6 +66,7 @@ new wxRepotSdk({
 
 | parameter name | describe | explain |
 | --- | --- | --- |
+| markuv | 统计uv标识 |  |
 | markuser | 用户标识  | 可用来做UV统计，和用户行为漏斗分析 |
 | net | 网络类型  |  |
 | time | 上报时间  |  |
