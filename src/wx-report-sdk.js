@@ -5,13 +5,14 @@ class wxRepotSdk {
         this.wxRequest = wx.request;
         this.haveAjax = false;
         this.isReport = false;
+        this.timer = null;
 
         this.config = {
             isUse: true,
             isNet: true,
             isSys: true,
             isLocal: true,
-            timeout: 500,
+            timeout: 300,
             isRepeat: false,
             domain: 'test.com'
         }
@@ -53,6 +54,8 @@ class wxRepotSdk {
         Page = (page) => {
             const _onShow = page.onShow || function () { };
             page.onShow = function () {
+                clearTimeout(this.timer);
+
                 _this.isReport = false;
                 let currentPages = getCurrentPages();
                 if (currentPages && currentPages.length) {
@@ -63,7 +66,7 @@ class wxRepotSdk {
                 }
                 if (!_this.datas.markuser) wx.getStorage({ key: 'ps_wx_mark_user', success(res) { _this.datas.markuser = res; } })
                 if (!_this.datas.markuv) wx.getStorage({ key: 'ps_wx_mark_uv', success(res) { _this.datas.markuv = res; } })
-                setTimeout(() => {
+                this.timer = setTimeout(() => {
                     if (!_this.haveAjax) {
                         _this.isReport = true;
                         _this.datas.time = new Date().getTime();
@@ -219,17 +222,21 @@ class wxRepotSdk {
         });
     }
     report() {
-        this.wxRequest({
+        let timer = null;
+        const requestTask = this.wxRequest({
             method: 'POST',
             url: this.config.domain,
             data: this.datas,
             success(res) {
-                console.log(res)
+                clearTimeout(timer);
             }
         })
         this.haveAjax = false;
         this.datas.errs = [];
         this.datas.ajaxs = [];
+        timer = setTimeout(()=>{
+            requestTask.abort();
+        },3000)
     }
 }
 module.exports = wxRepotSdk;
