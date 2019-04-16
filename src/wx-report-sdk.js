@@ -166,12 +166,14 @@ class wxRepotSdk {
                 })
                 const _complete = config.complete || function (data) { };
                 config.complete = function (data) {
+                    let datas = typeof data.data === 'object' ? JSON.stringify(data.data) : (data.data||'');
+                    const bodySize = data.header['Content-Length'] || datas.length || 0;
                     response.push({
                         errMsg: data.errMsg,
                         url: config.url || '',
                         statusCode: data.statusCode,
                         endtime: new Date().getTime(),
-                        bodySize: data.header ? data.header['Content-Length'] : 0,
+                        bodySize: bodySize,
                     })
                     if (response.length === request.length) {
                         clearTimeout(timer);
@@ -234,9 +236,9 @@ class wxRepotSdk {
         this.haveAjax = false;
         this.datas.errs = [];
         this.datas.ajaxs = [];
-        timer = setTimeout(()=>{
+        timer = setTimeout(() => {
             requestTask.abort();
-        },3000)
+        }, 3000)
     }
 }
 module.exports = wxRepotSdk;

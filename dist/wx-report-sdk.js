@@ -1,13 +1,5 @@
-'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var wxRepotSdk = function () {
-    function wxRepotSdk(opt) {
-        _classCallCheck(this, wxRepotSdk);
-
+class wxRepotSdk {
+    constructor(opt) {
         this.originPage = Page;
         this.originApp = App;
         this.wxRequest = wx.request;
@@ -23,7 +15,7 @@ var wxRepotSdk = function () {
             timeout: 300,
             isRepeat: false,
             domain: 'test.com'
-        };
+        }
         this.config = Object.assign(this.config, opt || {});
         this.datas = {
             errs: [],
@@ -33,261 +25,218 @@ var wxRepotSdk = function () {
             system: {},
             loc: {},
             pages: {},
-            ajaxs: []
-        };
+            ajaxs: [],
+        }
         this.datas = Object.assign(this.datas, opt.add || {});
         this.init();
     }
-
-    _createClass(wxRepotSdk, [{
-        key: 'init',
-        value: function init() {
-            if (!this.config.isUse) return;
-            this.page();
-            this.app();
-            this.wrapRequest();
-            if (this.config.isNet) this.network();
-            if (this.config.isSys) this.system();
-            if (this.config.isLocal) this.location();
+    init() {
+        if (!this.config.isUse) return;
+        this.page();
+        this.app();
+        this.wrapRequest();
+        if (this.config.isNet) this.network();
+        if (this.config.isSys) this.system();
+        if (this.config.isLocal) this.location();
+    }
+    randomString(len) {
+        len = len || 10;
+        var $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz123456789';
+        var maxPos = $chars.length;
+        var pwd = '';
+        for (let i = 0; i < len; i++) {
+            pwd = pwd + $chars.charAt(Math.floor(Math.random() * maxPos));
         }
-    }, {
-        key: 'randomString',
-        value: function randomString(len) {
-            len = len || 10;
-            var $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz123456789';
-            var maxPos = $chars.length;
-            var pwd = '';
-            for (var i = 0; i < len; i++) {
-                pwd = pwd + $chars.charAt(Math.floor(Math.random() * maxPos));
-            }
-            return pwd + new Date().getTime();
-        }
-    }, {
-        key: 'page',
-        value: function page() {
-            var _this = this;
-            Page = function Page(page) {
-                var _onShow = page.onShow || function () {};
-                page.onShow = function () {
-                    clearTimeout(this.timer);
+        return pwd + new Date().getTime();
+    }
+    page() {
+        const _this = this;
+        Page = (page) => {
+            const _onShow = page.onShow || function () { };
+            page.onShow = function () {
+                clearTimeout(this.timer);
 
-                    _this.isReport = false;
-                    var currentPages = getCurrentPages();
-                    if (currentPages && currentPages.length) {
-                        var length = currentPages.length;
-                        var lastpage = currentPages[length - 1];
-                        _this.datas.pages.router = lastpage.__route__;
-                        _this.datas.pages.options = lastpage.options || {};
+                _this.isReport = false;
+                let currentPages = getCurrentPages();
+                if (currentPages && currentPages.length) {
+                    const length = currentPages.length;
+                    const lastpage = currentPages[length - 1];
+                    _this.datas.pages.router = lastpage.__route__;
+                    _this.datas.pages.options = lastpage.options || {};
+                }
+                if (!_this.datas.markuser) wx.getStorage({ key: 'ps_wx_mark_user', success(res) { _this.datas.markuser = res; } })
+                if (!_this.datas.markuv) wx.getStorage({ key: 'ps_wx_mark_uv', success(res) { _this.datas.markuv = res; } })
+                this.timer = setTimeout(() => {
+                    if (!_this.haveAjax) {
+                        _this.isReport = true;
+                        _this.datas.time = new Date().getTime();
+                        _this.report();
                     }
-                    if (!_this.datas.markuser) wx.getStorage({ key: 'ps_wx_mark_user', success: function success(res) {
-                            _this.datas.markuser = res;
-                        }
-                    });
-                    if (!_this.datas.markuv) wx.getStorage({ key: 'ps_wx_mark_uv', success: function success(res) {
-                            _this.datas.markuv = res;
-                        }
-                    });
-                    this.timer = setTimeout(function () {
-                        if (!_this.haveAjax) {
-                            _this.isReport = true;
-                            _this.datas.time = new Date().getTime();
-                            _this.report();
-                        }
-                    }, _this.config.timeout);
-                    return _onShow.apply(this, arguments);
-                };
-                _this.originPage(page);
-            };
-        }
-    }, {
-        key: 'app',
-        value: function app() {
-            var _this = this;
-            App = function App(app) {
-                var _onError = app.onError || function () {};
-                var _onShow = app.onShow || function () {};
-                app.onError = function (err) {
-                    var errspit = err.split(/\n/) || [];
-                    var src = void 0,
-                        col = void 0,
-                        line = void 0;
-                    var errs = err.match(/\(.+?\)/);
-                    if (errs && errs.length) errs = errs[0];
-                    errs = errs.replace(/\w.+js/g, function ($1) {
-                        src = $1;return '';
-                    });
-                    errs = errs.split(':');
-                    if (errs && errs.length > 1) line = parseInt(errs[1] || 0);col = parseInt(errs[2] || 0);
-                    _this.datas.errs.push({
-                        col: col,
-                        line: line,
-                        name: src,
-                        msg: errspit[0] + ';' + errspit[1] + ';' + errspit[2] + ';',
-                        type: 'js'
-                    });
-                    return _onError.apply(this, arguments);
-                };
-                app.onShow = function () {
-                    _this.isReport = false;
-                    var random = _this.randomString();
-                    wx.setStorage({ key: "ps_wx_mark_user", data: random });
-                    _this.datas.markuser = random;
-                    _this.datas.markuv = _this.markUv();
-                    return _onShow.apply(this, arguments);
-                };
-                _this.originApp(app);
-            };
-        }
-    }, {
-        key: 'markUv',
-        value: function markUv() {
-            var date = new Date();
-            var markUv = wx.getStorageSync('ps_wx_mark_uv') || '';
-            var datatime = wx.getStorageSync('ps_wx_mark_uv_time') || '';
-            var today = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate() + ' 23:59:59';
-            if (!markUv && !datatime || date.getTime() > datatime * 1) {
-                markUv = this.randomString();
-                wx.setStorage({ key: "ps_wx_mark_uv", data: markUv });
-                wx.setStorage({ key: "ps_wx_mark_uv_time", data: new Date(today).getTime() });
+                }, _this.config.timeout)
+                return _onShow.apply(this, arguments)
             }
-            return markUv;
+            _this.originPage(page)
+        };
+    }
+    app() {
+        const _this = this;
+        App = (app) => {
+            const _onError = app.onError || function () { };
+            const _onShow = app.onShow || function () { };
+            app.onError = function (err) {
+                let errspit = err.split(/\n/) || [];
+                let src, col, line;
+                let errs = err.match(/\(.+?\)/)
+                if (errs && errs.length) errs = errs[0]
+                errs = errs.replace(/\w.+js/g, $1 => { src = $1; return ''; })
+                errs = errs.split(':')
+                if (errs && errs.length > 1) line = parseInt(errs[1] || 0); col = parseInt(errs[2] || 0)
+                _this.datas.errs.push({
+                    col: col,
+                    line: line,
+                    name: src,
+                    msg: `${errspit[0]};${errspit[1]};${errspit[2]};`,
+                    type: 'js'
+                })
+                return _onError.apply(this, arguments)
+            }
+            app.onShow = function () {
+                _this.isReport = false;
+                const random = _this.randomString();
+                wx.setStorage({ key: "ps_wx_mark_user", data: random })
+                _this.datas.markuser = random;
+                _this.datas.markuv = _this.markUv();
+                return _onShow.apply(this, arguments)
+            }
+            _this.originApp(app)
         }
-    }, {
-        key: 'network',
-        value: function network() {
-            var _this2 = this;
-
-            wx.getNetworkType({
-                success: function success(res) {
-                    _this2.datas.net = res.networkType;
-                }
-            });
+    }
+    markUv() {
+        const date = new Date();
+        let markUv = wx.getStorageSync('ps_wx_mark_uv') || '';
+        const datatime = wx.getStorageSync('ps_wx_mark_uv_time') || '';
+        const today = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate() + ' 23:59:59';
+        if ((!markUv && !datatime) || (date.getTime() > datatime * 1)) {
+            markUv = this.randomString();
+            wx.setStorage({ key: "ps_wx_mark_uv", data: markUv });
+            wx.setStorage({ key: "ps_wx_mark_uv_time", data: new Date(today).getTime() });
         }
-    }, {
-        key: 'system',
-        value: function system() {
-            var _this3 = this;
-
-            wx.getSystemInfo({
-                success: function success(res) {
-                    _this3.datas.system = res;
-                }
-            });
-        }
-    }, {
-        key: 'location',
-        value: function location() {
-            var _this4 = this;
-
-            wx.getLocation({
-                type: 'wgs84',
-                success: function success(res) {
-                    _this4.datas.loc = res;
-                }
-            });
-        }
-    }, {
-        key: 'wrapRequest',
-        value: function wrapRequest() {
-            var timer = null;
-            var originRequest = wx.request;
-            var request = [];
-            var response = [];
-            var _this = this;
-            Object.defineProperty(wx, 'request', {
-                configurable: true,
-                enumerable: true,
-                writable: true,
-                value: function value() {
-                    var config = arguments[0] || {};
-                    _this.haveAjax = true;
-                    request.push({
+        return markUv;
+    }
+    network() {
+        wx.getNetworkType({
+            success: res => {
+                this.datas.net = res.networkType;
+            }
+        })
+    }
+    system() {
+        wx.getSystemInfo({
+            success: res => {
+                this.datas.system = res;
+            }
+        })
+    }
+    location() {
+        wx.getLocation({
+            type: 'wgs84',
+            success: res => {
+                this.datas.loc = res;
+            }
+        })
+    }
+    wrapRequest() {
+        let timer = null;
+        const originRequest = wx.request;
+        let request = [];
+        let response = [];
+        const _this = this;
+        Object.defineProperty(wx, 'request', {
+            configurable: true,
+            enumerable: true,
+            writable: true,
+            value: function () {
+                const config = arguments[0] || {};
+                _this.haveAjax = true;
+                request.push({
+                    url: config.url || '',
+                    options: config.data || '',
+                    method: config.method || 'GET',
+                    begintime: new Date().getTime()
+                })
+                const _complete = config.complete || function (data) { };
+                config.complete = function (data) {
+                    response.push({
+                        errMsg: data.errMsg,
                         url: config.url || '',
-                        options: config.data || '',
-                        method: config.method || 'GET',
-                        begintime: new Date().getTime()
-                    });
-                    var _complete = config.complete || function (data) {};
-                    config.complete = function (data) {
-                        response.push({
-                            errMsg: data.errMsg,
-                            url: config.url || '',
-                            statusCode: data.statusCode,
-                            endtime: new Date().getTime(),
-                            bodySize: data.header ? data.header['Content-Length'] : 0
-                        });
-                        if (response.length === request.length) {
+                        statusCode: data.statusCode,
+                        endtime: new Date().getTime(),
+                        bodySize: data.header ? data.header['Content-Length'] : 0,
+                    })
+                    if (response.length === request.length) {
+                        clearTimeout(timer);
+                        timer = setTimeout(() => {
+                            if (response.length === request.length) _this.mergeAjax(request, response);
+                            request = [];
+                            response = [];
                             clearTimeout(timer);
-                            timer = setTimeout(function () {
-                                if (response.length === request.length) _this.mergeAjax(request, response);
-                                request = [];
-                                response = [];
-                                clearTimeout(timer);
-                            }, _this.config.timeout);
-                        }
-                        return _complete.apply(this, arguments);
-                    };
-                    return originRequest.apply(this, arguments);
-                }
-            });
-        }
-    }, {
-        key: 'mergeAjax',
-        value: function mergeAjax(request, response) {
-            var _this = this;
-            response.forEach(function (item, i) {
-                request.forEach(function (item1, i1) {
-                    if (item.url.indexOf(item1.url) > -1) {
-                        if (item.errMsg === 'request:ok' && item.statusCode === 200) {
-                            _this.datas.ajaxs.push({
-                                duration: item.endtime - item1.begintime || 0,
-                                name: item1.url,
-                                method: item1.method,
-                                bodySize: item.bodySize,
-                                options: item1.options
-                            });
-                        } else {
-                            _this.datas.errs.push({
-                                name: item1.url,
-                                method: item1.method,
-                                msg: item.errMsg,
-                                type: 'ajax',
-                                status: item.statusCode,
-                                options: item1.options
-                            });
-                        }
+                        }, _this.config.timeout)
                     }
-                });
-                if (i === response.length - 1) {
-                    if (!_this.config.isRepeat && _this.isReport) return;
-                    _this.isReport = true;
-                    _this.datas.time = new Date().getTime();
-                    _this.report();
+                    return _complete.apply(this, arguments);
                 }
-            });
-        }
-    }, {
-        key: 'report',
-        value: function report() {
-            var timer = null;
-            var requestTask = this.wxRequest({
-                method: 'POST',
-                url: this.config.domain,
-                data: this.datas,
-                success: function success(res) {
-                    clearTimeout(timer);
+                return originRequest.apply(this, arguments);
+            }
+        });
+    }
+    mergeAjax(request, response) {
+        const _this = this;
+        response.forEach((item, i) => {
+            request.forEach((item1, i1) => {
+                if (item.url.indexOf(item1.url) > -1) {
+                    if (item.errMsg === 'request:ok' && item.statusCode === 200) {
+                        _this.datas.ajaxs.push({
+                            duration: item.endtime - item1.begintime || 0,
+                            name: item1.url,
+                            method: item1.method,
+                            bodySize: item.bodySize,
+                            options: item1.options
+                        })
+                    } else {
+                        _this.datas.errs.push({
+                            name: item1.url,
+                            method: item1.method,
+                            msg: item.errMsg,
+                            type: 'ajax',
+                            status: item.statusCode,
+                            options: item1.options
+                        })
+                    }
                 }
-            });
-            this.haveAjax = false;
-            this.datas.errs = [];
-            this.datas.ajaxs = [];
-            timer = setTimeout(function () {
-                requestTask.abort();
-            }, 3000);
-        }
-    }]);
-
-    return wxRepotSdk;
-}();
-
+            })
+            if (i === response.length - 1) {
+                if (!_this.config.isRepeat && _this.isReport) return;
+                _this.isReport = true;
+                _this.datas.time = new Date().getTime();
+                _this.report();
+            }
+        });
+    }
+    report() {
+        let timer = null;
+        const requestTask = this.wxRequest({
+            method: 'POST',
+            url: this.config.domain,
+            data: this.datas,
+            success(res) {
+                clearTimeout(timer);
+            }
+        })
+        this.haveAjax = false;
+        this.datas.errs = [];
+        this.datas.ajaxs = [];
+        timer = setTimeout(()=>{
+            requestTask.abort();
+        },3000)
+    }
+}
 module.exports = wxRepotSdk;
