@@ -26,6 +26,7 @@ class wxRepotSdk {
             loc: {},
             pages: {},
             ajaxs: [],
+            type: 1,
         }
         this.datas = Object.assign(this.datas, opt.add || {});
         this.init();
@@ -55,7 +56,7 @@ class wxRepotSdk {
             const _onShow = page.onShow || function () { };
             page.onShow = function () {
                 clearTimeout(this.timer);
-
+                _this.datas.type = 1;
                 _this.isReport = false;
                 let currentPages = getCurrentPages();
                 if (currentPages && currentPages.length) {
@@ -74,6 +75,12 @@ class wxRepotSdk {
                     }
                 }, _this.config.timeout)
                 return _onShow.apply(this, arguments)
+            }
+            const _onPullDownRefresh = page.onPullDownRefresh || function () { };
+            page.onPullDownRefresh = function(){
+                _this.datas.type = 1;
+                setTimeout(()=>{_this.datas.type = 2;},1500);
+                return _onPullDownRefresh.apply(this, arguments)
             }
             _this.originPage(page)
         };
@@ -98,10 +105,12 @@ class wxRepotSdk {
                     msg: `${errspit[0]};${errspit[1]};${errspit[2]};`,
                     type: 'js'
                 })
+                if(_this.datas.type === 2) _this.report(3);
                 return _onError.apply(this, arguments)
             }
             app.onShow = function () {
                 _this.isReport = false;
+                _this.datas.type = 1;
                 const random = _this.randomString();
                 wx.setStorage({ key: "ps_wx_mark_user", data: random })
                 _this.datas.markuser = random;
@@ -111,6 +120,7 @@ class wxRepotSdk {
             _this.originApp(app)
         }
     }
+
     markUv() {
         const date = new Date();
         let markUv = wx.getStorageSync('ps_wx_mark_uv') || '';
@@ -166,7 +176,7 @@ class wxRepotSdk {
                 })
                 const _complete = config.complete || function (data) { };
                 config.complete = function (data) {
-                    let datas = typeof data.data === 'object' ? JSON.stringify(data.data) : (data.data||'');
+                    let datas = typeof data.data === 'object' ? JSON.stringify(data.data) : (data.data || '');
                     const bodySize = data.header['Content-Length'] || datas.length || 0;
                     response.push({
                         errMsg: data.errMsg,
@@ -223,17 +233,34 @@ class wxRepotSdk {
             }
         });
     }
-    report() {
+    report(type) {
+        const result = {
+            appId: this.datas.appId,
+            markuser: this.datas.markuser,
+            markuv: this.datas.markuv,
+            pages: this.datas.pages,
+            time: this.datas.time,
+            type: this.datas.type,
+            ajaxs: this.datas.ajaxs,
+            errs:this.datas.errs,
+        }
+        if (this.config.isNet && this.datas.type===1) result.net = this.datas.net;
+        if (this.config.isSys && this.datas.type===1) result.system = this.datas.system;
+        if (this.config.isLocal && this.datas.type===1) result.loc = this.datas.loc;
+        if (type) result.type = type;
+
         let timer = null;
         const requestTask = this.wxRequest({
             method: 'POST',
             url: this.config.domain,
-            data: this.datas,
+            data: result,
             success(res) {
                 clearTimeout(timer);
             }
         })
         this.haveAjax = false;
+        this.isReport = false;
+        this.datas.type = 2;
         this.datas.errs = [];
         this.datas.ajaxs = [];
         timer = setTimeout(() => {
